@@ -1,0 +1,4 @@
+web_servers:
+  hosts:
+    rpi1:
+    rpi2:

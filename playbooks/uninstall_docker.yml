@@ -1,0 +1,27 @@
+---
+name: Uninstall docker
+hosts: local
+become: true
+tasks:
+
+  - name: Purge docker
+    ansible.builtin.apt:
+      state: absent
+      purge: true
+      name:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-buildx-plugin
+        - docker-compose-plugin
+        - docker-ce-rootless-extras
+  
+  - name: Remove docker directories
+    ansible.builtin.file:
+      state: absent
+      path: "{{ item }}"
+    loop:
+      - /var/lib/docker
+      - /var/lib/containerd
+      - /etc/apt/sources.list.d/docker.list
+      - /etc/apt/keyrings/docker.asc

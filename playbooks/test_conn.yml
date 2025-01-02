@@ -1,0 +1,14 @@
+---
+# ansible-playbook playbooks/test_conn.yml -i inventory/web_servers.yml
+- name: Test web servers
+  hosts: web_servers
+  gather_facts: true
+  tasks:
+
+    - name: Ensure access to internet
+      ansible.builtin.uri:
+        url: http://thomasjamesfrancis.com
+
+    - name: Debug ansible facts
+      ansible.builtin.debug:
+        var: ansible_facts
