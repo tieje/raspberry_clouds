@@ -1,0 +1,17 @@
+---
+# ansible-playbook playbooks/ensure_docker.yml -i inventory/web_servers.yml
+- name: Ensure UFW
+  hosts: web_servers
+  become: true
+  tasks:
+
+    - name: Ensure UFW firewall
+      ansible.builtin.apt:
+        update_cache: true
+        state: latest  
+        name: ufw
+
+    - name: Enable UFW
+      community.general.ufw:
+        state: enabled
+        

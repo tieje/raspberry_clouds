@@ -1,10 +1,25 @@
 ---
+# ansible-playbook playbooks/ensure_docker.yml -i inventory/web_servers.yml
 - name: Ensure Docker
   hosts: web_servers
   become: true
   vars:
-    gpg_path: /etc/apt/keyrings/docker.asc
+    distribution: "{{ ansible_facts['distribution'] | lower }}"
+    docker_distribution_url: "https://download.docker.com/linux/{{ distribution }}"
+    codename: "{{ ansible_facts['lsb']['codename'] | lower }}"
   tasks:
+
+    - name: debug vars
+      ansible.builtin.debug:
+        var: distribution
+
+    - name: debug vars
+      ansible.builtin.debug:
+        var: docker_distribution_url
+
+    - name: debug vars
+      ansible.builtin.debug:
+        var: codename
 
     - name: Ensure no conflicting dependencies
       ansible.builtin.apt:
@@ -18,24 +33,36 @@
           - containerd
           - runc
 
-    - name: Set up docker apt repo
+    - name: Ensure docker installation dependencies
       ansible.builtin.apt:
-        state: present
+        update_cache: true
+        state: latest
         name:
           - ca-certificates
           - curl
 
-    - name: Ensure the keyring directory exists
-      ansible.builtin.file:
-        path: /etc/apt/keyrings
-        state: directory
-        mode: '0755'
-    
-    - name: Add docker gpg key
-      ansible.builtin.get_url:
-        url: "https://download.docker.com/linux/{{ ansible_facts["distribution"] }}/gpg"
-        dest: "{{ gpg_path }}"
-        mode: '0444'
-        force: true
+    - name: Add Docker GPG apt Key
+      ansible.builtin.apt_key:
+        url: "{{ docker_distribution_url }}/gpg"
+        state: present
 
-    - name: 
+    - name: Add Docker Repository
+      apt_repository:
+        repo: "deb {{ docker_distribution_url }} {{ codename }} stable"
+        state: present
+
+    - name: Install docker packages
+      apt:
+        state: latest
+        update_cache: true
+        name:
+          - docker-ce
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+
+    - name: Start docker service
+      ansible.builtin.service:
+        enabled: true
+        state: started
+        name: docker
