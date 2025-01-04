@@ -1,8 +1,9 @@
 ---
-# ansible-playbook playbooks/ensure_docker.yml -i inventory/web_servers.yml
+# ansible-playbook playbooks/ensure_ufw.yml -i inventory/web_servers.yml
 - name: Ensure UFW
   hosts: web_servers
   become: true
+  gather_facts: false
   tasks:
 
     - name: Ensure UFW firewall
@@ -14,4 +15,18 @@
     - name: Enable UFW
       community.general.ufw:
         state: enabled
-        
+
+    - name: Limit SSH
+      community.general.ufw:
+        rule: limit
+        port: ssh
+        proto: tcp
+
+    - name: Allow all access to specific ports
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop:
+        - 443
+        - 80
