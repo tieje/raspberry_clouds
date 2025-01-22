@@ -1,0 +1,37 @@
+## STATIC CONFIGURATION
+log:
+  level: INFO
+
+api:
+  insecure: true
+  dashboard: true
+  debug: true
+
+entryPoints:
+  web:
+    address: :8000
+  dashboard:
+    address: :8080
+
+providers:
+  docker:
+    endpoint: unix:///var/run/docker.sock
+
+http:
+  routers:
+    traefikRouter:
+      entryPoints:
+        - web
+        - dashboard
+      rule: Host(`traefik.localhost`)
+      service: traefik
+    whoamiRouter:
+      rule: Host(`whoami.localhost`)
+      service: whoami
+      
+
+# http:
+#   middlewares:
+#     my_admins:
+#       basicAuth:
+#         usersFile: figure this out later
